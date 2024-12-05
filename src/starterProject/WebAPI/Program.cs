@@ -1,5 +1,8 @@
-using Application;
+﻿using Application;
 using Infrastructure;
+using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Authentication.Cookies;
+using Microsoft.AspNetCore.Authentication.Google;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
@@ -86,6 +89,19 @@ builder.Services.AddSwaggerGen(opt =>
     opt.OperationFilter<BearerSecurityRequirementOperationFilter>();
 });
 
+// google Authentication
+builder.Services.AddAuthentication(options =>
+{
+    options.DefaultAuthenticateScheme = CookieAuthenticationDefaults.AuthenticationScheme;
+    options.DefaultChallengeScheme = CookieAuthenticationDefaults.AuthenticationScheme;
+})
+.AddCookie() // Çerez tabanlı kimlik doğrulama
+.AddGoogle(GoogleDefaults.AuthenticationScheme, options =>
+{
+    options.ClientId = builder.Configuration["Authentication:Google:ClientId"];
+    options.ClientSecret = builder.Configuration["Authentication:Google:ClientSecret"];
+});
+
 WebApplication app = builder.Build();
 
 // Configure the HTTP request pipeline.
@@ -105,6 +121,34 @@ app.UseDbMigrationApplier();
 
 app.UseAuthentication();
 app.UseAuthorization();
+
+// Login işlemi için route
+app.MapGet("/login", async context =>
+{
+    await context.ChallengeAsync(GoogleDefaults.AuthenticationScheme, new AuthenticationProperties
+    {
+        RedirectUri = "/" // Girişten sonra yönlendirilecek URL
+    });
+});
+
+// Logout işlemi için route
+app.MapGet("/logout", async context =>
+{
+    await context.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
+    context.Response.Redirect("/"); // Çıkıştan sonra yönlendirilecek URL
+});
+
+app.MapGet("/", async context =>
+{
+    if (context.User.Identity.IsAuthenticated)
+    {
+        await context.Response.WriteAsync($"Hello, {context.User.Identity.Name}!");
+    }
+    else
+    {
+        await context.Response.WriteAsync("Not authenticated");
+    }
+});
 
 app.MapControllers();
 

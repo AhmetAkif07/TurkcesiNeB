@@ -7,7 +7,6 @@ using MediatR;
 using NArchitecture.Core.Application.Dtos;
 using NArchitecture.Core.Security.Enums;
 using NArchitecture.Core.Security.JWT;
-using RestSharp;
 
 namespace Application.Features.Auth.Commands.Login;
 
@@ -50,31 +49,6 @@ public class LoginCommand : IRequest<LoggedResponse>
 
         public async Task<LoggedResponse> Handle(LoginCommand request, CancellationToken cancellationToken)
         {
-
-            string apiKey = "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"; // OpenAI API anahtarınızı buraya yapıştırın
-            string endpoint = "https://api.openai.com/v1/chat/completions";
-            var client = new RestClient(endpoint);
-            var restRequest = new RestRequest();
-            restRequest.Method = Method.Post;
-            // API Anahtarını Header'a ekleme
-            restRequest.AddHeader("Authorization", $"Bearer {apiKey}");
-            restRequest.AddHeader("Content-Type", "application/json");
-            // API'ye gönderilecek JSON verisi
-            var body = new
-            {
-                model = "gpt-3.5-turbo", // veya "gpt-4"
-                messages = new[]
-                {
-    new { role = "system", content = "You are a helpful assistant." },
-    new { role = "user", content = "Merhaba, bugün nasılsın?" }
-},
-                max_tokens = 100,
-                temperature = 0.7
-            };
-            restRequest.AddJsonBody(body);
-            // İstek gönderme ve yanıt alma
-            var responseData = await client.ExecuteAsync(restRequest);
-
             User? user = await _userService.GetAsync(
                 predicate: u => u.Email == request.UserForLoginDto.Email,
                 cancellationToken: cancellationToken
