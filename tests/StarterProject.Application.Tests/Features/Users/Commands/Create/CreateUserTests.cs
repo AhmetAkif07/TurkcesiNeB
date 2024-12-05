@@ -67,7 +67,7 @@ public class CreateUserTests : UserMockRepository
     {
         _command.FirstName = "First";
         _command.LastName = "Last";
-        _command.Email = "example@kodlama.io";
+        _command.Email = "alitas7875@gmail.com";
         _command.Password = "password";
 
         async Task Action() => await _handler.Handle(_command, CancellationToken.None);
