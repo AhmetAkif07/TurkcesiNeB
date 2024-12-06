@@ -22,7 +22,7 @@
 	<PackageReference Include="RestSharp" Version="112.1.0" />
   </ItemGroup>
   <ItemGroup>
-    <Folder Include="Features\ChatGBT\Commands\" />
+    <Folder Include="Features\Promt\Commands\" />
     <Folder Include="Services\" />
     <Folder Include="Services\Repositories" />
   </ItemGroup>
