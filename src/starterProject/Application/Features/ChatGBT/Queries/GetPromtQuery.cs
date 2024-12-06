@@ -2,18 +2,16 @@
 using RestSharp;
 
 namespace Application.Features.ChatGBT.Queries;
-public class GetChatGBTResponseQuery : IRequest<RestResponse>
+public class GetPromtQuery : IRequest<RestResponse>
 {
     public string Promt { get; set; }
 
-    public class GetChatGBTResponseQueryHandler : IRequestHandler<GetChatGBTResponseQuery, RestResponse>
+    public class GetPromtQueryHandler : IRequestHandler<GetPromtQuery, RestResponse>
     {
-
-        public GetChatGBTResponseQueryHandler()
+        public GetPromtQueryHandler()
         {
         }
-
-        public async Task<RestResponse> Handle(GetChatGBTResponseQuery request, CancellationToken cancellationToken)
+        public async Task<RestResponse> Handle(GetPromtQuery request, CancellationToken cancellationToken)
         {
             string apiKey = "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"; // OpenAI API anahtarınızı buraya yapıştırın
             string endpoint = "https://api.openai.com/v1/chat/completions";

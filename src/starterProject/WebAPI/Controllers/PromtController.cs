@@ -6,12 +6,12 @@ namespace WebAPI.Controllers;
 
 [Route("api/[controller]")]
 [ApiController]
-public class ChatGBTController : BaseController
+public class PromtController : BaseController
 {
     [HttpGet("{Promt}")]
-    public async Task<IActionResult> GetChatGBTResponse([FromRoute] GetChatGBTResponseQuery getChatGBTResponseQuery)
+    public async Task<IActionResult> GetPromt([FromRoute] GetPromtQuery getPromtQuery)
     {
-        RestResponse result = await Mediator.Send(getChatGBTResponseQuery);
+        RestResponse result = await Mediator.Send(getPromtQuery);
         return Ok(result);
     }
 
