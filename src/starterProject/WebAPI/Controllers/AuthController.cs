@@ -18,13 +18,15 @@ namespace WebAPI.Controllers;
 public class AuthController : BaseController
 {
     private readonly WebApiConfiguration _configuration;
+    private readonly GoogleAuthService _googleAuthService;
 
-    public AuthController(IConfiguration configuration)
+    public AuthController(IConfiguration configuration, GoogleAuthService googleAuthService)
     {
         const string configurationSection = "WebAPIConfiguration";
         _configuration =
             configuration.GetSection(configurationSection).Get<WebApiConfiguration>()
             ?? throw new NullReferenceException($"\"{configurationSection}\" section cannot found in configuration.");
+        _googleAuthService = googleAuthService;
     }
 
     [HttpPost("Login")]
@@ -119,4 +121,19 @@ public class AuthController : BaseController
         CookieOptions cookieOptions = new() { HttpOnly = true, Expires = DateTime.UtcNow.AddDays(7) };
         Response.Cookies.Append(key: "refreshToken", refreshToken.Token, cookieOptions);
     }
+
+    [HttpGet("LoginWithGoogle")]
+    public async Task<IActionResult> LoginWithGoogle()
+    {
+        await _googleAuthService.LoginAsync("https://www.youtube.com/"); // Girişten sonra yönlendirme
+        return new EmptyResult();
+    }
+
+    [HttpGet("LogoutWithGoogle")]
+    public async Task<IActionResult> LogoutWithGoogle()
+    {
+        await _googleAuthService.LogoutAsync("/");
+        return new EmptyResult();
+    }
+
 }

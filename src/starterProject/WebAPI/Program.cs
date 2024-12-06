@@ -1,4 +1,5 @@
 ﻿using Application;
+using Application.Features.Auth.Commands.Login;
 using Infrastructure;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
@@ -17,11 +18,15 @@ using NArchitecture.Core.Security.JWT;
 using NArchitecture.Core.Security.WebApi.Swagger.Extensions;
 using Persistence;
 using Swashbuckle.AspNetCore.SwaggerUI;
+using System.Text;
 using WebAPI;
 
 WebApplicationBuilder builder = WebApplication.CreateBuilder(args);
 
+// Add services to the container
 builder.Services.AddControllers();
+
+// Application Services
 builder.Services.AddApplicationServices(
     mailSettings: builder.Configuration.GetSection("MailSettings").Get<MailSettings>()
         ?? throw new InvalidOperationException("MailSettings section cannot found in configuration."),
@@ -40,71 +45,76 @@ Console.WriteLine($"ConnectionString: {connectionString}");
 builder.Services.AddPersistenceServices(builder.Configuration);
 builder.Services.AddInfrastructureServices();
 builder.Services.AddHttpContextAccessor();
+builder.Services.AddScoped<GoogleAuthService>();
 
+// Token options configuration
 const string tokenOptionsConfigurationSection = "TokenOptions";
 TokenOptions tokenOptions =
     builder.Configuration.GetSection(tokenOptionsConfigurationSection).Get<TokenOptions>()
     ?? throw new InvalidOperationException($"\"{tokenOptionsConfigurationSection}\" section cannot found in configuration.");
-builder
-    .Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
-    .AddJwtBearer(options =>
-    {
-        options.TokenValidationParameters = new TokenValidationParameters
-        {
-            ValidateIssuer = true,
-            ValidateAudience = true,
-            ValidateLifetime = true,
-            ValidIssuer = tokenOptions.Issuer,
-            ValidAudience = tokenOptions.Audience,
-            ValidateIssuerSigningKey = true,
-            IssuerSigningKey = SecurityKeyHelper.CreateSecurityKey(tokenOptions.SecurityKey)
-        };
-    });
 
+// JWT Authentication Configuration
+builder.Services.AddAuthentication(options =>
+{
+    options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme; // Varsayılan kimlik doğrulama JWT
+    options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+})
+.AddJwtBearer(JwtBearerDefaults.AuthenticationScheme, options =>
+{
+    options.TokenValidationParameters = new TokenValidationParameters
+    {
+        ValidateIssuer = true,
+        ValidateAudience = true,
+        ValidateLifetime = true,
+        ValidateIssuerSigningKey = true,
+        ValidIssuer = tokenOptions.Issuer,
+        ValidAudience = tokenOptions.Audience,
+        IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(tokenOptions.SecurityKey))
+    };
+});
+
+// Google Authentication (Oturum Açma)
+builder.Services.AddAuthentication(options =>
+{
+    options.DefaultScheme = CookieAuthenticationDefaults.AuthenticationScheme; // Google oturum açma için Cookies
+    options.DefaultChallengeScheme = GoogleDefaults.AuthenticationScheme;
+})
+.AddCookie() // Çerez tabanlı kimlik doğrulama
+.AddGoogle(options =>
+{
+    options.ClientId = builder.Configuration["Authentication:Google:ClientId"];
+    options.ClientSecret = builder.Configuration["Authentication:Google:ClientSecret"];
+    options.SignInScheme = CookieAuthenticationDefaults.AuthenticationScheme; // Google oturum açma sonrası çerez ile yönetim
+});
+
+// Add distributed memory cache (if needed)
 builder.Services.AddDistributedMemoryCache();
 
+// Add Swagger and CORS
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddCors(opt =>
-    opt.AddDefaultPolicy(p =>
+    opt.AddPolicy("AllowAll", p =>
     {
         p.AllowAnyOrigin().AllowAnyMethod().AllowAnyHeader();
     })
 );
 builder.Services.AddSwaggerGen(opt =>
 {
-    opt.AddSecurityDefinition(
-        name: "Bearer",
-        securityScheme: new OpenApiSecurityScheme
-        {
-            Name = "Authorization",
-            Type = SecuritySchemeType.Http,
-            Scheme = "Bearer",
-            BearerFormat = "JWT",
-            In = ParameterLocation.Header,
-            Description =
-                "JWT Authorization header using the Bearer scheme. Example: \"Authorization: Bearer YOUR_TOKEN\". \r\n\r\n"
-                + "`Enter your token in the text input below.`"
-        }
-    );
+    opt.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
+    {
+        Name = "Authorization",
+        Type = SecuritySchemeType.Http,
+        Scheme = "Bearer",
+        BearerFormat = "JWT",
+        In = ParameterLocation.Header,
+        Description = "JWT Authorization header using the Bearer scheme. Example: \"Authorization: Bearer YOUR_TOKEN\"."
+    });
     opt.OperationFilter<BearerSecurityRequirementOperationFilter>();
-});
-
-// google Authentication
-builder.Services.AddAuthentication(options =>
-{
-    options.DefaultAuthenticateScheme = CookieAuthenticationDefaults.AuthenticationScheme;
-    options.DefaultChallengeScheme = CookieAuthenticationDefaults.AuthenticationScheme;
-})
-.AddCookie() // Çerez tabanlı kimlik doğrulama
-.AddGoogle(GoogleDefaults.AuthenticationScheme, options =>
-{
-    options.ClientId = builder.Configuration["Authentication:Google:ClientId"];
-    options.ClientSecret = builder.Configuration["Authentication:Google:ClientSecret"];
 });
 
 WebApplication app = builder.Build();
 
-// Configure the HTTP request pipeline.
+// Configure the HTTP request pipeline
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
@@ -118,26 +128,11 @@ if (app.Environment.IsProduction())
     app.ConfigureCustomExceptionMiddleware();
 
 app.UseDbMigrationApplier();
-
+app.UseCors("AllowAll");
 app.UseAuthentication();
 app.UseAuthorization();
 
-// Login işlemi için route
-app.MapGet("/login", async context =>
-{
-    await context.ChallengeAsync(GoogleDefaults.AuthenticationScheme, new AuthenticationProperties
-    {
-        RedirectUri = "/" // Girişten sonra yönlendirilecek URL
-    });
-});
-
-// Logout işlemi için route
-app.MapGet("/logout", async context =>
-{
-    await context.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
-    context.Response.Redirect("/"); // Çıkıştan sonra yönlendirilecek URL
-});
-
+// Test endpoint for authentication
 app.MapGet("/", async context =>
 {
     if (context.User.Identity.IsAuthenticated)
@@ -152,6 +147,7 @@ app.MapGet("/", async context =>
 
 app.MapControllers();
 
+// Web API configuration
 const string webApiConfigurationSection = "WebAPIConfiguration";
 WebApiConfiguration webApiConfiguration =
     app.Configuration.GetSection(webApiConfigurationSection).Get<WebApiConfiguration>()
