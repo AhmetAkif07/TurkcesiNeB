@@ -1,4 +1,5 @@
 ﻿using MediatR;
+using Microsoft.Extensions.Configuration;
 using RestSharp;
 
 namespace Application.Features.ChatGBT.Queries;
@@ -8,13 +9,16 @@ public class GetPromtQuery : IRequest<RestResponse>
 
     public class GetPromtQueryHandler : IRequestHandler<GetPromtQuery, RestResponse>
     {
-        public GetPromtQueryHandler()
+        private readonly IConfiguration _configuration;
+        public GetPromtQueryHandler(IConfiguration configuration)
         {
+            _configuration = configuration;
         }
         public async Task<RestResponse> Handle(GetPromtQuery request, CancellationToken cancellationToken)
         {
-            string apiKey = "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"; // OpenAI API anahtarınızı buraya yapıştırın
-            string endpoint = "https://api.openai.com/v1/chat/completions";
+            string apiKey = _configuration["OpenAI:ApiKey"];
+            string endpoint = _configuration["OpenAI:EndPoint"];
+
             var client = new RestClient(endpoint);
             var restRequest = new RestRequest();
             restRequest.Method = Method.Post;
