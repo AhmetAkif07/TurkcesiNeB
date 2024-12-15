@@ -1,5 +1,7 @@
 ﻿using Application;
 using Application.Features.Auth.Commands.Login;
+using Application.Services.AuthService;
+using Application.Services.Helper;
 using Infrastructure;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
@@ -26,6 +28,7 @@ WebApplicationBuilder builder = WebApplication.CreateBuilder(args);
 // Add services to the container
 builder.Services.AddControllers();
 
+
 // Application Services
 builder.Services.AddApplicationServices(
     mailSettings: builder.Configuration.GetSection("MailSettings").Get<MailSettings>()
@@ -46,6 +49,7 @@ builder.Services.AddPersistenceServices(builder.Configuration);
 builder.Services.AddInfrastructureServices();
 builder.Services.AddHttpContextAccessor();
 builder.Services.AddScoped<GoogleAuthService>();
+builder.Services.AddScoped<IAppleSignInService, AppleSignInHelper>();
 
 // Token options configuration
 const string tokenOptionsConfigurationSection = "TokenOptions";

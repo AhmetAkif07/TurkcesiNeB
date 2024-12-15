@@ -1,4 +1,5 @@
-﻿using Application.Features.Auth.Commands.EnableEmailAuthenticator;
+﻿using Application.Dtos;
+using Application.Features.Auth.Commands.EnableEmailAuthenticator;
 using Application.Features.Auth.Commands.EnableOtpAuthenticator;
 using Application.Features.Auth.Commands.Login;
 using Application.Features.Auth.Commands.RefreshToken;
@@ -6,6 +7,7 @@ using Application.Features.Auth.Commands.Register;
 using Application.Features.Auth.Commands.RevokeToken;
 using Application.Features.Auth.Commands.VerifyEmailAuthenticator;
 using Application.Features.Auth.Commands.VerifyOtpAuthenticator;
+using Application.Services.AuthService;
 using Domain.Entities;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.ModelBinding;
@@ -19,14 +21,15 @@ public class AuthController : BaseController
 {
     private readonly WebApiConfiguration _configuration;
     private readonly GoogleAuthService _googleAuthService;
-
-    public AuthController(IConfiguration configuration, GoogleAuthService googleAuthService)
+    private readonly IAppleSignInService _appleSignInService;
+    public AuthController(IConfiguration configuration, GoogleAuthService googleAuthService, IAppleSignInService appleSignInService)
     {
         const string configurationSection = "WebAPIConfiguration";
         _configuration =
             configuration.GetSection(configurationSection).Get<WebApiConfiguration>()
             ?? throw new NullReferenceException($"\"{configurationSection}\" section cannot found in configuration.");
         _googleAuthService = googleAuthService;
+        _appleSignInService = appleSignInService;
     }
 
     [HttpPost("Login")]
@@ -134,6 +137,22 @@ public class AuthController : BaseController
     {
         await _googleAuthService.LogoutAsync("/");
         return new EmptyResult();
+    }
+
+    [HttpPost("GenerateSecretWithApple")]
+    public IActionResult GenerateSecret([FromBody] GenerateSecretRequest request)
+    {
+        if (request == null ||
+                string.IsNullOrEmpty(request.TeamId) ||
+                string.IsNullOrEmpty(request.ClientId) ||
+                string.IsNullOrEmpty(request.KeyId) ||
+                string.IsNullOrEmpty(request.PrivateKey))
+        {
+            return BadRequest("Invalid input. Please provide all required fields.");
+        }
+
+        var clientSecret = _appleSignInService.GenerateClientSecret(request);
+        return Ok(new { clientSecret });
     }
 
 }
