@@ -1,6 +1,6 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk;Microsoft.NET.Sdk.Publish">
   <PropertyGroup>
-    <TargetFramework>net8.0</TargetFramework>
+    <TargetFramework>net9.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
   </PropertyGroup>
@@ -14,13 +14,13 @@
     <PackageReference Include="NArchitecture.Core.Application" Version="1.0.1" />
     <PackageReference Include="NArchitecture.Core.Mailing" Version="1.0.1" />
     <PackageReference Include="NArchitecture.Core.Mailing.Mailkit" Version="1.0.1" />
-	<PackageReference Include="NArchitecture.Core.CrossCuttingConcerns.Exception" Version="1.0.0" />
-	<PackageReference Include="NArchitecture.Core.CrossCuttingConcerns.Logging.Serilog.File" Version="1.0.0" />
-	<PackageReference Include="NArchitecture.Core.Localization.Abstraction" Version="1.0.0" />
-	<PackageReference Include="NArchitecture.Core.Localization.Resource.Yaml.DependencyInjection" Version="1.0.1" />
-	<PackageReference Include="NArchitecture.Core.ElasticSearch" Version="1.0.0" />
-	<PackageReference Include="NArchitecture.Core.Security.DependencyInjection" Version="1.2.0" />
-	<PackageReference Include="RestSharp" Version="112.1.0" />
+    <PackageReference Include="NArchitecture.Core.CrossCuttingConcerns.Exception" Version="1.0.0" />
+    <PackageReference Include="NArchitecture.Core.CrossCuttingConcerns.Logging.Serilog.File" Version="1.0.0" />
+    <PackageReference Include="NArchitecture.Core.Localization.Abstraction" Version="1.0.0" />
+    <PackageReference Include="NArchitecture.Core.Localization.Resource.Yaml.DependencyInjection" Version="1.0.1" />
+    <PackageReference Include="NArchitecture.Core.ElasticSearch" Version="1.0.0" />
+    <PackageReference Include="NArchitecture.Core.Security.DependencyInjection" Version="1.2.0" />
+    <PackageReference Include="RestSharp" Version="112.1.0" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="Features\Promt\Commands\" />
@@ -28,7 +28,7 @@
   </ItemGroup>
   <ItemGroup>
     <None Update="Features\**\Resources\Locales\*.*.yaml">
-        <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
   </ItemGroup>
 </Project>
