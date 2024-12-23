@@ -1,4 +1,5 @@
 ﻿using Application.Features.ChatGBT.Queries;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using RestSharp;
 
@@ -14,6 +15,4 @@ public class PromtController : BaseController
         RestResponse result = await Mediator.Send(getPromtQuery);
         return Ok(result);
     }
-
-
 }

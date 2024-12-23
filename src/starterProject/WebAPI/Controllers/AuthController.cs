@@ -9,6 +9,7 @@ using Application.Features.Auth.Commands.VerifyEmailAuthenticator;
 using Application.Features.Auth.Commands.VerifyOtpAuthenticator;
 using Application.Services.AuthService;
 using Domain.Entities;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.ModelBinding;
 using NArchitecture.Core.Application.Dtos;
@@ -33,6 +34,7 @@ public class AuthController : BaseController
     }
 
     [HttpPost("Login")]
+    [AllowAnonymous]
     public async Task<IActionResult> Login([FromBody] UserForLoginDto userForLoginDto)
     {
         LoginCommand loginCommand = new() { UserForLoginDto = userForLoginDto, IpAddress = getIpAddress() };
@@ -45,6 +47,7 @@ public class AuthController : BaseController
     }
 
     [HttpPost("Register")]
+    [AllowAnonymous]
     public async Task<IActionResult> Register([FromBody] UserForRegisterDto userForRegisterDto)
     {
         RegisterCommand registerCommand = new() { UserForRegisterDto = userForRegisterDto, IpAddress = getIpAddress() };
@@ -116,7 +119,8 @@ public class AuthController : BaseController
 
     private string getRefreshTokenFromCookies()
     {
-        return Request.Cookies["refreshToken"] ?? throw new ArgumentException("Refresh token is not found in request cookies.");
+        //return Request.Cookies["refreshToken"] ?? throw new ArgumentException("Refresh token is not found in request cookies.");
+        return Request.Cookies.FirstOrDefault().Value ?? throw new ArgumentException("Refresh token is not found in request cookies.");
     }
 
     private void setRefreshTokenToCookie(RefreshToken refreshToken)
@@ -126,6 +130,7 @@ public class AuthController : BaseController
     }
 
     [HttpGet("LoginWithGoogle")]
+    [AllowAnonymous]
     public async Task<IActionResult> LoginWithGoogle()
     {
         await _googleAuthService.LoginAsync("https://www.youtube.com/"); // Girişten sonra yönlendirme
