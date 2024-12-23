@@ -1,0 +1,7 @@
+version: '3.8'
+services:
+    web.api:
+        image:  web-api_image
+        build:
+            context: .
+            dockerfile: src/starterProject/WebAPI/Dockerfile        

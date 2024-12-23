@@ -402,3 +402,4 @@ FodyWeavers.xsd
 *.sln.iml
 src/starterProject/WebAPI/appsettings.Development.json
 *.json
+/src/starterProject/WebAPI/appsettings.Local.json
