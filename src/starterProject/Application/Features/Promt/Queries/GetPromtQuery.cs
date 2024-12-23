@@ -31,17 +31,28 @@ public class GetPromtQuery : IRequest<RestResponse>
                 model = "gpt-3.5-turbo", // veya "gpt-4"
                 messages = new[]
                 {
-                new { role = "system", content = "You are a helpful assistant." },
+                //new { role = "system", content = "You are a helpful assistant." },
                 new { role = "user", content = request.Promt }
             },
-                max_tokens = 100,
-                temperature = 0.7
+                max_tokens = 100
+                //,temperature = 0.7
             };
             restRequest.AddJsonBody(body);
             // İstek gönderme ve yanıt alma
-            var responseData = await client.ExecuteAsync(restRequest);
+            var response = await client.ExecuteAsync(restRequest);
 
-            return responseData;
+            if (response.IsSuccessful)
+            {
+                Console.WriteLine("Response:");
+                Console.WriteLine(response.Content);
+            }
+            else
+            {
+                Console.WriteLine("Error Message:");
+                Console.WriteLine(response.Content); // Burada "insufficient_quota" hatasını alırsanız kullanım limitiniz bitmiştir.
+            }
+
+            return response;
         }
     }
 }
