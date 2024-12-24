@@ -1,0 +1,13 @@
+version: '3.8'
+services:
+    web.api:
+        container_name: web-api
+        restart: on-failure
+        environment:
+            - ASPNETCORE_ENVIRONMENT=Development
+            - ConnectionStrings:BaseDb=Server=mssql-189373-0.cloudclusters.net,10074; Database=TurkcesiNe;User Id=brewcloud;Password=123654Bc!
+            - PORT=80   
+        ports:
+            - 80:80
+  
+  
