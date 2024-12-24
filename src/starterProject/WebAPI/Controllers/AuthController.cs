@@ -160,36 +160,4 @@ public class AuthController : BaseController
         return Ok(new { clientSecret });
     }
 
-    //[AllowAnonymous]
-    //[HttpPost("LoginWithGoogleByMobile")]
-    //public async Task<IActionResult> Login([FromBody] UserDto userDto)
-    //{
-    //    if (string.IsNullOrEmpty(userDto.IdToken))
-    //    {
-    //        return BadRequest("ID Token is required.");
-    //    }
-
-    //    var existingUser = await _context.Users
-    //        .FirstOrDefaultAsync(u => u.Email == userDto.Email);
-
-    //    if (existingUser == null)
-    //    {
-    //        var newUser = new User
-    //        {
-    //            Email = userDto.Email,
-    //            Name = userDto.Name
-    //        };
-
-    //        _context.Users.Add(newUser);
-    //        await _context.SaveChangesAsync();
-
-    //        return Ok(newUser);
-    //    }
-
-    //    existingUser.Name = userDto.Name;
-    //    await _context.SaveChangesAsync();
-
-    //    return Ok(existingUser);
-    //}
-
 }
